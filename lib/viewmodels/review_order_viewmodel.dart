@@ -186,7 +186,7 @@ class ReviewOrderViewModel extends ChangeNotifier {
   }
 
   /// طباعة تفاصيل الطلب بنفس صيغة إنشاء الطلب
-  Future<void> printOrder(BuildContext contex) async {
+  Future<void> printOrder(BuildContext context) async {
     final pdf = pw.Document();
     final font = pw.Font.ttf(
       await rootBundle.load('assets/fonts/Almarai-Regular.ttf'),
@@ -197,7 +197,7 @@ class ReviewOrderViewModel extends ChangeNotifier {
         .toList();
     for (var item in validItems) {
       if (item.quantity <= 0) {
-        ScaffoldMessenger.of(contex).showSnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('الكمية يجب أن تكون أكبر من صفر لكل الأصناف'),
             backgroundColor: Colors.redAccent,
@@ -208,7 +208,7 @@ class ReviewOrderViewModel extends ChangeNotifier {
     }
     for (var item in items) {
       if (item.name.isEmpty) {
-        ScaffoldMessenger.of(contex).showSnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('تحقق احدى الاصناف فارغة'),
             backgroundColor: Colors.redAccent,
@@ -318,7 +318,7 @@ class ReviewOrderViewModel extends ChangeNotifier {
         .update(updatedData);
 
     ScaffoldMessenger.of(
-      contex,
+      context,
     ).showSnackBar(const SnackBar(content: Text('تم حفظ التعديلات')));
     clear();
   }

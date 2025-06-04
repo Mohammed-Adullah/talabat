@@ -12,7 +12,7 @@ class ItemManagementViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  final String userId = FirebaseAuth.instance.currentUser!.uid;
+  String? get userId => FirebaseAuth.instance.currentUser?.uid;
   // ألمنيوم
   final aluminumNameController = TextEditingController();
 
@@ -95,10 +95,11 @@ class ItemManagementViewModel extends ChangeNotifier {
     if (selectedItemType == ItemType.aluminum) {
       final name = aluminumNameController.text.trim();
       if (name.isEmpty) return;
-
+      final uid = userId;
+      if (uid == null) return;
       await firestore.collection('aluminum_items').add({
         'sectorName': name,
-        'userId': FirebaseAuth.instance.currentUser!.uid,
+        'userId': uid,
       });
     }
 
@@ -115,11 +116,12 @@ class ItemManagementViewModel extends ChangeNotifier {
           'paintCode': solidSupplierCodeControllers[i].text.trim(),
         });
       }
-
+      final uid = userId;
+      if (uid == null) return;
       await firestore.collection('solid_colors').add({
         'localCode': code,
         'suppliers': suppliers,
-        'userId': FirebaseAuth.instance.currentUser!.uid,
+        'userId': uid,
       });
     }
 
@@ -138,14 +140,15 @@ class ItemManagementViewModel extends ChangeNotifier {
           'paintCode': woodSupplierCodeControllers[i].text.trim(),
         });
       }
-
+      final uid = userId;
+      if (uid == null) return;
       await firestore.collection('wood_colors').add({
         'localCode': code,
         'filmCode': film,
         'suppliers': suppliers,
         'ovenTemperature': temp,
         'ovenTime': time,
-        'userId': FirebaseAuth.instance.currentUser!.uid,
+        'userId': uid,
       });
     }
 

@@ -20,7 +20,7 @@ class HomeViewModel extends ChangeNotifier {
     '/new-order', // المسار إلى شاشة إنشاء طلب
     '/review_order', // سيتم تنفيذه لاحقاً
     '/Statistics', // سيتم تنفيذه لاحقاً
-    '/itemmanagment', // سيتم تنفيذه لاحقاً
+    '/itemmanagement', // سيتم تنفيذه لاحقاً
   ];
 
   // الدالة التي تُنفذ عند الضغط على أحد العناصر

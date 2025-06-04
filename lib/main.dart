@@ -61,7 +61,7 @@ class FactoryOrdersApp extends StatelessWidget {
           '/home': (context) => const HomeScreen(),
           '/new-order': (context) => const NewOrderScreen(),
           '/review_order': (context) => const ReviewOrderScreen(),
-          '/itemmanagment': (context) => const ItemManagementScreen(),
+          '/itemmanagement': (context) => const ItemManagementScreen(),
           '/Statistics': (context) => const StatisticsScreen(),
         },
       ),
