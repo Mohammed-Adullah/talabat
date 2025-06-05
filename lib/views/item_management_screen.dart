@@ -5,7 +5,7 @@ import 'package:talabat/views/add_item_screen.dart';
 import 'package:talabat/views/delete_item_screen.dart';
 
 class ItemManagementScreen extends StatelessWidget {
-  const ItemManagementScreen({Key? key}) : super(key: key);
+  const ItemManagementScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

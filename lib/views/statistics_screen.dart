@@ -203,8 +203,9 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               getTitlesWidget: (double value, TitleMeta meta) {
                 // قيمة value هنا هي فهرس العمود (index)
                 final index = value.toInt();
-                if (index < 0 || index >= data.length)
+                if (index < 0 || index >= data.length) {
                   return const SizedBox.shrink();
+                }
                 final code = data[index].code;
                 return SideTitleWidget(
                   meta: meta,

@@ -24,34 +24,32 @@ class HomeScreen extends StatelessWidget {
                 ),
                 itemCount: viewModel.options.length,
                 itemBuilder: (context, index) {
-                  return Directionality(
-                    textDirection: TextDirection.rtl,
-                    child: Card(
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: InkWell(
-                        onTap: () => viewModel.onOptionSelected(context, index),
-                        borderRadius: BorderRadius.circular(12),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              Icon(viewModel.icons[index], size: 20),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  viewModel.options[index],
-                                  style: const TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                  return Card(
+                    elevation: 4,
+
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: InkWell(
+                      onTap: () => viewModel.onOptionSelected(context, index),
+                      borderRadius: BorderRadius.circular(12),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Icon(viewModel.icons[index], size: 20),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                viewModel.options[index],
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
                     ),

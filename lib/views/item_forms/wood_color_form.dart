@@ -101,6 +101,9 @@ class WoodColorForm extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         TextField(
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly, // ✅ يمنع أي شيء غير رقم
+          ],
           controller: viewModel.woodOvenTempController,
           keyboardType: TextInputType.number,
           decoration: const InputDecoration(
@@ -110,6 +113,9 @@ class WoodColorForm extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         TextField(
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly, // ✅ يمنع أي شيء غير رقم
+          ],
           controller: viewModel.woodOvenTimeController,
           keyboardType: TextInputType.number,
           decoration: const InputDecoration(

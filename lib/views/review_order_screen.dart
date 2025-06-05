@@ -204,7 +204,9 @@ class ReviewOrderScreen extends StatelessWidget {
                     SizedBox(height: 20),
                     // زر لحفظ التعديلات
                     ElevatedButton(
-                      onPressed: () => vm.saveChanges(context),
+                      onPressed: () async {
+                        vm.saveChanges(context);
+                      },
                       child: Text('حفظ التعديلات'),
                     ),
 
@@ -213,7 +215,9 @@ class ReviewOrderScreen extends StatelessWidget {
                     ElevatedButton.icon(
                       icon: Icon(Icons.print),
                       label: Text('طباعة'),
-                      onPressed: () => vm.printOrder(context),
+                      onPressed: () async {
+                        await vm.printOrder(context);
+                      },
                     ),
                   ],
                 ],

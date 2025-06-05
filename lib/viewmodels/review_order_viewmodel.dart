@@ -140,7 +140,7 @@ class ReviewOrderViewModel extends ChangeNotifier {
       if (item.name.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('تحقق احدى الاصناف فارغة'),
+            content: Text('تحقق إحدى الاصناف فارغة'),
             backgroundColor: Colors.redAccent,
           ),
         );
@@ -210,7 +210,7 @@ class ReviewOrderViewModel extends ChangeNotifier {
       if (item.name.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('تحقق احدى الاصناف فارغة'),
+            content: Text('تحقق إحدى الاصناف فارغة'),
             backgroundColor: Colors.redAccent,
           ),
         );

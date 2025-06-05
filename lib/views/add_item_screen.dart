@@ -59,7 +59,10 @@ class AddItemScreen extends StatelessWidget {
                 const SizedBox(height: 24),
                 Center(
                   child: ElevatedButton.icon(
-                    onPressed: viewModel.addItem,
+                    onPressed: () async {
+                      await viewModel.addItem(context);
+                    },
+
                     icon: const Icon(Icons.add),
                     label: const Text('إضافة الصنف'),
                     style: ElevatedButton.styleFrom(

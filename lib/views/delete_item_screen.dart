@@ -5,7 +5,7 @@ import 'package:dropdown_search/dropdown_search.dart';
 import '../viewmodels/item_management_viewmodel.dart';
 
 class DeleteItemScreen extends StatefulWidget {
-  const DeleteItemScreen({Key? key}) : super(key: key);
+  const DeleteItemScreen({super.key});
 
   @override
   State<DeleteItemScreen> createState() => _DeleteItemScreenState();
@@ -130,17 +130,22 @@ class _DeleteItemScreenState extends State<DeleteItemScreen> {
                       _selectedItemNameToDelete!,
                     );
                     if (success) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('تم حذف الصنف بنجاح')),
-                      );
+                      () async {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('تم حذف الصنف بنجاح')),
+                        );
+                      };
+
                       // إعادة تهيئة لاختيار عنصر جديد بعد الحذف
                       setState(() {
                         _selectedItemNameToDelete = null;
                       });
                     } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('حدث خطأ أثناء الحذف')),
-                      );
+                      () async {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('حدث خطأ أثناء الحذف')),
+                        );
+                      };
                     }
                   },
                   child: const Text('حذف الصنف'),

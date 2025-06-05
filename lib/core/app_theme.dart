@@ -22,8 +22,6 @@ class AppTheme {
       onError: Color(0xffffffff),
       errorContainer: Color(0xffffdad6),
       onErrorContainer: Color(0xff93000a),
-      background: Color(0xfff6fafe),
-      onBackground: Color(0xff181c1f),
       surface: Color(0xfff6fafe),
       onSurface: Color(0xff181c1f),
       onSurfaceVariant: Color(0xff41484d),
@@ -60,7 +58,7 @@ class AppTheme {
       brightness: Brightness.light,
       fontFamily: 'Almarai', // ✅ خط عربي يدعم RTL
       colorScheme: colorScheme,
-      scaffoldBackgroundColor: colorScheme.background,
+      scaffoldBackgroundColor: colorScheme.surface,
 
       // ✅ أزرار بتصميم ناعم ومتناسق
       elevatedButtonTheme: ElevatedButtonThemeData(
