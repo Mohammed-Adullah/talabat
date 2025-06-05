@@ -30,7 +30,8 @@ class LoginViewModel extends ChangeNotifier {
         email: usernameController.text.trim(),
         password: passwordController.text.trim(),
       );
-
+      // بمجرد انتهاء الـ await نتحقق أولاً من context.mounted
+      if (!context.mounted) return;
       // الانتقال إلى الشاشة الرئيسية واستبدال شاشة الدخول
       Navigator.pushReplacementNamed(context, '/home');
     } on FirebaseAuthException catch (e) {

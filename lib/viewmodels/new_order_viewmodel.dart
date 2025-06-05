@@ -288,7 +288,7 @@ class NewOrderViewModel extends ChangeNotifier {
                 'الأصناف:',
                 style: pw.TextStyle(font: font, fontSize: 18),
               ),
-              pw.Table.fromTextArray(
+              pw.TableHelper.fromTextArray(
                 headers: ['المصدر', 'العدد', 'الصنف'],
 
                 data: List.generate(addedItems.length, (index) {

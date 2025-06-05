@@ -5,15 +5,20 @@ import 'package:talabat/views/item_forms/aluminum_form.dart';
 import 'package:talabat/views/item_forms/solid_color_form.dart';
 import 'package:talabat/views/item_forms/wood_color_form.dart';
 
-class AddItemScreen extends StatelessWidget {
+class AddItemScreen extends StatefulWidget {
   const AddItemScreen({super.key});
 
+  @override
+  State<AddItemScreen> createState() => _AddItemScreenState();
+}
+
+class _AddItemScreenState extends State<AddItemScreen> {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) => ItemManagementViewModel(),
       child: Consumer<ItemManagementViewModel>(
-        builder: (context, viewModel, child) {
+        builder: (context, viewModel, _) {
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -60,7 +65,27 @@ class AddItemScreen extends StatelessWidget {
                 Center(
                   child: ElevatedButton.icon(
                     onPressed: () async {
-                      await viewModel.addItem(context);
+                      // نستدعي addItem() وننتظر نتيجة النص
+                      final errorMessage = await viewModel.addItem();
+                      if (!context.mounted) return;
+
+                      if (errorMessage.isEmpty) {
+                        // نجاح → نعرض SnackBar نجاح
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('تمت الإضافة بنجاح'),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      } else {
+                        // فشل → نعرض نص رسالة الخطأ
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(errorMessage),
+                            backgroundColor: Colors.redAccent,
+                          ),
+                        );
+                      }
                     },
 
                     icon: const Icon(Icons.add),

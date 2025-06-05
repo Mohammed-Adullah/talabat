@@ -11,9 +11,5 @@ class OrderItem {
   final String source;
 
   // الباني الأساسي للكلاس، يتطلب كل القيم
-  OrderItem({
-    required this.name,
-    required this.quantity,
-    required this.source,
-  });
+  OrderItem({required this.name, required this.quantity, required this.source});
 }

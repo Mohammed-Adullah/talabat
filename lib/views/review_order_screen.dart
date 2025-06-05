@@ -205,7 +205,7 @@ class ReviewOrderScreen extends StatelessWidget {
                     // زر لحفظ التعديلات
                     ElevatedButton(
                       onPressed: () async {
-                        vm.saveChanges(context);
+                        await vm.saveChanges(context);
                       },
                       child: Text('حفظ التعديلات'),
                     ),

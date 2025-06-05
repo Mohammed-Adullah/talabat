@@ -89,68 +89,48 @@ class ItemManagementViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> addItem(BuildContext context) async {
+  Future<String> addItem() async {
     final firestore = FirebaseFirestore.instance;
+    final uid = userId;
 
     if (selectedItemType == ItemType.aluminum) {
       final name = aluminumNameController.text.trim();
+
       if (name.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('يرجى ادخال اسم قطاع الألمنيوم'),
-            backgroundColor: Colors.redAccent,
-          ),
-        );
-        return;
+        return 'يرجى إدخال  اسم قطاع الألمنيوم';
       }
-      final uid = userId;
-      if (uid == null) return;
-      await firestore.collection('aluminum_items').add({
-        'sectorName': name,
-        'userId': uid,
-      });
+      try {
+        await firestore.collection('aluminum_items').add({
+          'sectorName': name,
+          'userId': uid,
+        });
+        clearFields();
+        return ''; // يعني: نجح
+      } catch (e) {
+        return 'فشل في إضافة عنصر الألمنيوم';
+      }
     }
 
     if (selectedItemType == ItemType.solidColor) {
-      final uid = userId;
-      if (uid == null) return;
       final code = solidLocalCodeController.text.trim();
-      // الشرط 1: الرمز المحلي لا يجوز أن يكون فارغًا
       if (code.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('يرجى ادخال رمز اللون الخاص بك'),
-            backgroundColor: Colors.redAccent,
-          ),
-        );
-        return;
+        return 'يرجى إدخال رمز اللون المحلي';
       }
 
-      // الشرط 2: لكل مورد في القائمة، يجب أن يكون paintCode و supplierName غير فارغين
+      // لكل مورد، يجب أن يكون paintCode و supplierName غير فارغين
       for (int i = 0; i < solidMixCount; i++) {
         final paintCode = solidSupplierCodeControllers[i].text.trim();
         final supplierName = solidCompanyNameControllers[i].text.trim();
 
         if (paintCode.isEmpty) {
-          // إذا وُجد أي حقل فارغ، نخرج من الدالة دون إضافة
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('يرجى ادخال رمز اللون الخاص بالمورد'),
-              backgroundColor: Colors.redAccent,
-            ),
-          );
-          return;
+          return 'يرجى إدخال رمز اللون الخاص بالمورد رقم ${i + 1}';
         }
         if (supplierName.isEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('يرجى ادخال اسم الشركة الموردة'),
-              backgroundColor: Colors.redAccent,
-            ),
-          );
-          return;
+          return 'يرجى إدخال اسم الشركة الموردة رقم ${i + 1}';
         }
       }
+
+      // نجمع قائمة الموردين
       List<Map<String, String>> suppliers = [];
       for (int i = 0; i < solidMixCount; i++) {
         suppliers.add({
@@ -159,11 +139,17 @@ class ItemManagementViewModel extends ChangeNotifier {
         });
       }
 
-      await firestore.collection('solid_colors').add({
-        'localCode': code,
-        'suppliers': suppliers,
-        'userId': uid,
-      });
+      try {
+        await firestore.collection('solid_colors').add({
+          'localCode': code,
+          'suppliers': suppliers,
+          'userId': uid,
+        });
+        clearFields();
+        return ''; // نجاح
+      } catch (e) {
+        return 'فشل في إضافة اللون السادة';
+      }
     }
 
     if (selectedItemType == ItemType.woodColor) {
@@ -171,69 +157,31 @@ class ItemManagementViewModel extends ChangeNotifier {
       final film = woodFilmCodeController.text.trim();
       final temp = int.tryParse(woodOvenTempController.text.trim()) ?? 0;
       final time = int.tryParse(woodOvenTimeController.text.trim()) ?? 0;
+
       if (film.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('يرجى ادخال رمز الفلم'),
-            backgroundColor: Colors.redAccent,
-          ),
-        );
-        return;
+        return 'يرجى إدخال رمز الفلم';
       }
       if (temp <= 150) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('يرجى ادخال درجة حرارة صحيحة'),
-            backgroundColor: Colors.redAccent,
-          ),
-        );
-        return;
+        return 'يرجى إدخال درجة حرارة صحيحة (> 150)';
       }
       if (time == 0) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('يرجى ادخال الوقت اللازم للتخشيب'),
-            backgroundColor: Colors.redAccent,
-          ),
-        );
-        return;
+        return 'يرجى إدخال الوقت اللازم للتخشيب';
       }
-
       if (code.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('يرجى ادخال رمز اللون الخاص بك'),
-            backgroundColor: Colors.redAccent,
-          ),
-        );
-
-        return;
+        return 'يرجى إدخال رمز اللون المحلي';
       }
-      // الشرط 2: لكل مورد في القائمة، يجب أن يكون paintCode و supplierName غير فارغين
-      for (int i = 0; i < solidMixCount; i++) {
-        final paintCode = solidSupplierCodeControllers[i].text.trim();
-        final supplierName = solidCompanyNameControllers[i].text.trim();
 
+      for (int i = 0; i < woodMixCount; i++) {
+        final paintCode = woodSupplierCodeControllers[i].text.trim();
+        final supplierName = woodCompanyNameControllers[i].text.trim();
         if (paintCode.isEmpty) {
-          // إذا وُجد أي حقل فارغ، نخرج من الدالة دون إضافة
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('يرجى ادخال رمز اللون الخاص بالمورد'),
-              backgroundColor: Colors.redAccent,
-            ),
-          );
-          return;
+          return 'يرجى إدخال رمز اللون الخاص بالمورد رقم ${i + 1}';
         }
         if (supplierName.isEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('يرجى ادخال اسم الشركة الموردة'),
-              backgroundColor: Colors.redAccent,
-            ),
-          );
-          return;
+          return 'يرجى إدخال اسم الشركة الموردة رقم ${i + 1}';
         }
       }
+
       List<Map<String, String>> suppliers = [];
       for (int i = 0; i < woodMixCount; i++) {
         suppliers.add({
@@ -241,20 +189,27 @@ class ItemManagementViewModel extends ChangeNotifier {
           'paintCode': woodSupplierCodeControllers[i].text.trim(),
         });
       }
-      final uid = userId;
-      if (uid == null) return;
-      await firestore.collection('wood_colors').add({
-        'localCode': code,
-        'filmCode': film,
-        'suppliers': suppliers,
-        'ovenTemperature': temp,
-        'ovenTime': time,
-        'userId': uid,
-      });
+
+      try {
+        await firestore.collection('wood_colors').add({
+          'localCode': code,
+          'filmCode': film,
+          'suppliers': suppliers,
+          'ovenTemperature': temp,
+          'ovenTime': time,
+          'userId': uid,
+        });
+        clearFields();
+        return ''; // نجاح
+      } catch (e) {
+        return 'فشل في إضافة اللون الخشابي';
+      }
     }
 
     clearFields(); // 🧹 تفريغ الحقول بعد الإضافة
     notifyListeners();
+    // إذا لم يُحدد نوع، نعيد خطأ
+    return 'يرجى اختيار نوع الصنف أولاً';
   }
 
   void clearFields() {

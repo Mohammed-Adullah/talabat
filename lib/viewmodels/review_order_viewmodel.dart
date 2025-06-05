@@ -161,6 +161,7 @@ class ReviewOrderViewModel extends ChangeNotifier {
         .collection('orders')
         .doc(_docId)
         .update(updatedData);
+    if (!context.mounted) return;
 
     ScaffoldMessenger.of(
       context,
@@ -195,6 +196,8 @@ class ReviewOrderViewModel extends ChangeNotifier {
     final validItems = items
         .where((item) => item.name.trim().isNotEmpty)
         .toList();
+    if (!context.mounted) return;
+
     for (var item in validItems) {
       if (item.quantity <= 0) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -278,7 +281,7 @@ class ReviewOrderViewModel extends ChangeNotifier {
                 'الأصناف:',
                 style: pw.TextStyle(font: font, fontSize: 18),
               ),
-              pw.Table.fromTextArray(
+              pw.TableHelper.fromTextArray(
                 headers: ['#', 'الصنف', 'العدد', 'المصدر'],
                 data: List.generate(items.length, (index) {
                   final item = items[index];
@@ -316,6 +319,7 @@ class ReviewOrderViewModel extends ChangeNotifier {
         .collection('orders')
         .doc(_docId)
         .update(updatedData);
+    if (!context.mounted) return;
 
     ScaffoldMessenger.of(
       context,

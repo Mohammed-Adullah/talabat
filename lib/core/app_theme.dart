@@ -111,6 +111,7 @@ class AppTheme {
           fontWeight: FontWeight.w500,
         ),
         hintStyle: TextStyle(
+          // ignore: deprecated_member_use
           color: colorScheme.onSurfaceVariant.withOpacity(0.6),
           fontSize: 13,
         ),
@@ -118,8 +119,8 @@ class AppTheme {
 
       // ✅ تخصيص AppBar
       appBarTheme: AppBarTheme(
-        backgroundColor: colorScheme.background,
-        foregroundColor: colorScheme.onBackground,
+        backgroundColor: colorScheme.surface,
+        foregroundColor: colorScheme.onSurface,
         elevation: 0,
       ),
     );
