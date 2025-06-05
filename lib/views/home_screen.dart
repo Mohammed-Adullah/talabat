@@ -8,25 +8,21 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => HomeViewModel(), // ✅ ربط ViewModel
+      create: (_) => HomeViewModel(),
       child: Scaffold(
-        appBar: AppBar(title: const Text('الصفحة الرئيسية'), centerTitle: true),
+        appBar: AppBar(title: const Text('الصفحة الرئيسية')),
         body: Consumer<HomeViewModel>(
           builder: (context, viewModel, child) {
             return Padding(
               padding: const EdgeInsets.all(16.0),
-              child: GridView.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2, // ✅ عمودين
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                  childAspectRatio: 2.8, // ✅ عرض أكبر من الطول
-                ),
-                itemCount: viewModel.options.length,
-                itemBuilder: (context, index) {
+              child: GridView.count(
+                crossAxisCount: 2, // عمودين
+                crossAxisSpacing: 16, // المسافة الأفقية بين الأعمدة
+                mainAxisSpacing: 16, // المسافة الرأسية بين الصفوف
+                childAspectRatio: 2.8, // العرض أكبر من الارتفاع
+                children: List.generate(viewModel.options.length, (index) {
                   return Card(
                     elevation: 4,
-
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -34,27 +30,39 @@ class HomeScreen extends StatelessWidget {
                       onTap: () => viewModel.onOptionSelected(context, index),
                       borderRadius: BorderRadius.circular(12),
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Icon(viewModel.icons[index], size: 20),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                viewModel.options[index],
-                                style: const TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w600,
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: LayoutBuilder(
+                          builder: (context, innerConstraints) {
+                            // نأخذ ارتفاع الخلية المتاح
+                            final iconSize = innerConstraints.maxHeight * 0.4;
+                            final fontSize = innerConstraints.maxHeight * 0.1;
+
+                            return Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(viewModel.icons[index], size: iconSize),
+                                const SizedBox(height: 4),
+                                Flexible(
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      viewModel.options[index],
+                                      style: TextStyle(
+                                        fontSize: fontSize,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ),
-                          ],
+                              ],
+                            );
+                          },
                         ),
                       ),
                     ),
                   );
-                },
+                }),
               ),
             );
           },
