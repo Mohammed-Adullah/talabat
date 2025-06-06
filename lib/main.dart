@@ -3,14 +3,14 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:provider/provider.dart'; // << موجود
+import 'package:provider/provider.dart'; // << أضفنا هذا السطر
 import 'package:talabat/core/app_theme.dart';
+import 'package:talabat/viewmodels/home_viewmodel.dart';
 import 'firebase_options.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 
-// استورد ViewModels
+// استورد ViewModel صفحة الإحصائيات
 import 'viewmodels/statistics_viewmodel.dart';
-import 'viewmodels/home_viewmodel.dart'; // << أضف هذا السطر
 
 // استورد جميع الشاشات (Views)
 import 'views/login_screen.dart';
@@ -31,6 +31,8 @@ class FactoryOrdersApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // هنا نغلف MaterialApp بمزوّد واحد (ChangeNotifierProvider)
+    // من نوع StatisticsViewModel حتى تتوفّر بيانات الإحصائيات في أي راوت
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<StatisticsViewModel>(
@@ -40,6 +42,7 @@ class FactoryOrdersApp extends StatelessWidget {
       ],
       child: MaterialApp(
         title: 'طلبات التشغيل',
+
         debugShowCheckedModeBanner: false,
         locale: const Locale('ar'),
         supportedLocales: const [Locale('ar')],
@@ -51,11 +54,11 @@ class FactoryOrdersApp extends StatelessWidget {
         theme: AppTheme.lightTheme,
         builder: (context, child) => ResponsiveBreakpoints.builder(
           child: child!,
-          breakpoints: const [
-            Breakpoint(start: 0, end: 450, name: MOBILE),
-            Breakpoint(start: 451, end: 800, name: TABLET),
-            Breakpoint(start: 801, end: 1920, name: DESKTOP),
-            Breakpoint(start: 1921, end: double.infinity, name: '4K'),
+          breakpoints: [
+            const Breakpoint(start: 0, end: 450, name: MOBILE),
+            const Breakpoint(start: 451, end: 800, name: TABLET),
+            const Breakpoint(start: 801, end: 1920, name: DESKTOP),
+            const Breakpoint(start: 1921, end: double.infinity, name: '4K'),
           ],
         ),
         initialRoute: '/',
@@ -65,7 +68,7 @@ class FactoryOrdersApp extends StatelessWidget {
           '/new-order': (context) => const NewOrderScreen(),
           '/review_order': (context) => const ReviewOrderScreen(),
           '/itemmanagement': (context) => const ItemManagementScreen(),
-          '/Statistics': (context) => const StatisticsScreen(),
+          '/statistics': (context) => const StatisticsScreen(),
         },
       ),
     );

@@ -54,6 +54,14 @@ class StatisticsViewModel extends ChangeNotifier {
   ///  3. تجميع التكرارات لكل رمز لون في خريطتين (سادة وخشابي)
   ///  4. فرز القوائم واختيار أعلى 10
   Future<void> loadStatistics() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) {
+      // ما في مستخدم حاليًا، فلا نستمر
+      _isLoading = false;
+      _error = "المستخدم غير مسجَّل الدخول.";
+      notifyListeners();
+      return;
+    }
     // 1) تهيئة الحالة
     _isLoading = true;
     _error = null;
@@ -169,7 +177,7 @@ class StatisticsViewModel extends ChangeNotifier {
         _topKhashabi = _topKhashabi.sublist(0, 10);
       }
     } catch (e) {
-      _error = "لايوجد بيانات ليتم احصائها: ";
+      _error = "حدث خطأ أثناء جلب الإحصائيات: ${e.toString()}";
     }
 
     // 8) أنهِ التحميل وأبلّغ المستمعين
