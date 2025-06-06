@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class HomeViewModel extends ChangeNotifier {
   // قائمة الخيارات التي تظهر في الصفحة الرئيسية
@@ -15,26 +16,50 @@ class HomeViewModel extends ChangeNotifier {
     Icons.bar_chart,
     Icons.category,
   ];
-  // قائمة المسارات المقابلة لكل خيار (بعضها لم يتم تنفيذه بعد)
+
+  // قائمة المسارات المقابلة لكل خيار
   final List<String> routes = [
-    '/new-order', // المسار إلى شاشة إنشاء طلب
-    '/review_order', // سيتم تنفيذه لاحقاً
-    '/Statistics', // سيتم تنفيذه لاحقاً
-    '/itemmanagement', // سيتم تنفيذه لاحقاً
+    '/new-order', // شاشة إنشاء طلب تشغيل جديد
+    '/review_order', // شاشة مراجعة طلب تشغيل سابق
+    '/statistics', // شاشة الإحصائيات
+    '/itemmanagement', // شاشة إدارة الأصناف
   ];
 
-  // الدالة التي تُنفذ عند الضغط على أحد العناصر
+  bool _isSigningOut = false;
+  bool get isSigningOut => _isSigningOut;
+
+  /// دالة تسجيل الخروج
+  Future<void> signOut() async {
+    _isSigningOut = true;
+    notifyListeners();
+
+    try {
+      await FirebaseAuth.instance.signOut();
+      // بعد نجاح تسجيل الخروج، يبقى isSigningOut true
+      // حتى تنقل الـ View المستخدم إلى شاشة تسجيل الدخول
+    } catch (e) {
+      // في حال وجود خطأ، يمكنك هنا التعامل مع الخطأ حسب الحاجة
+      _isSigningOut = false;
+      notifyListeners();
+    }
+  }
+
+  /// إعادة ضبط حالة تسجيل الخروج، إذا احتجت لعرض Home مرة أخرى
+  void resetSignOutState() {
+    _isSigningOut = false;
+    notifyListeners();
+  }
+
+  /// الدالة التي تُنفذ عند الضغط على أحد العناصر
   void onOptionSelected(BuildContext context, int index) {
     final route = routes[index];
 
     if (route.isNotEmpty) {
-      // إذا كان هناك مسار صالح → انتقل إليه
       Navigator.pushNamed(context, route);
     } else {
-      // إذا لم يكن هناك مسار → عرض رسالة بأن الميزة غير متوفرة
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('هذه الميزة لم تُنفذ بعد')));
+      ).showSnackBar(const SnackBar(content: Text('هذه الميزة لم تُنفذ بعد')));
     }
   }
 }

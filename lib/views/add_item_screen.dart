@@ -4,6 +4,7 @@ import 'package:talabat/viewmodels/item_management_viewmodel.dart';
 import 'package:talabat/views/item_forms/aluminum_form.dart';
 import 'package:talabat/views/item_forms/solid_color_form.dart';
 import 'package:talabat/views/item_forms/wood_color_form.dart';
+import 'package:talabat/views/widgets/animated_logo.dart';
 
 class AddItemScreen extends StatefulWidget {
   const AddItemScreen({super.key});
@@ -60,44 +61,51 @@ class _AddItemScreenState extends State<AddItemScreen> {
 
                 if (viewModel.selectedItemType == ItemType.woodColor)
                   WoodColorForm(viewModel: viewModel),
-
                 const SizedBox(height: 24),
-                Center(
-                  child: ElevatedButton.icon(
-                    onPressed: () async {
-                      // نستدعي addItem() وننتظر نتيجة النص
-                      final errorMessage = await viewModel.addItem();
-                      if (!context.mounted) return;
+                if (viewModel.selectedItemType != null)
+                  viewModel.isLoading
+                      // إذا في تحميل: عرض الشعار المتحرك في المنتصف
+                      ? Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: const Center(child: AnimatedLogo()),
+                        )
+                      // إذا انتهى التحميل: عرض زر الإضافة
+                      : Center(
+                          child: ElevatedButton.icon(
+                            onPressed: () async {
+                              // نستدعي addItem() وننتظر نتيجة النص
+                              final errorMessage = await viewModel.addItem();
+                              if (!context.mounted) return;
 
-                      if (errorMessage.isEmpty) {
-                        // نجاح → نعرض SnackBar نجاح
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('تمت الإضافة بنجاح'),
-                            backgroundColor: Colors.green,
-                          ),
-                        );
-                      } else {
-                        // فشل → نعرض نص رسالة الخطأ
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(errorMessage),
-                            backgroundColor: Colors.redAccent,
-                          ),
-                        );
-                      }
-                    },
+                              if (errorMessage.isEmpty) {
+                                // نجاح → نعرض SnackBar نجاح
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('تمت الإضافة بنجاح'),
+                                    backgroundColor: Colors.green,
+                                  ),
+                                );
+                              } else {
+                                // فشل → نعرض نص رسالة الخطأ
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(errorMessage),
+                                    backgroundColor: Colors.redAccent,
+                                  ),
+                                );
+                              }
+                            },
 
-                    icon: const Icon(Icons.add),
-                    label: const Text('إضافة الصنف'),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
-                      ),
-                    ),
-                  ),
-                ),
+                            icon: const Icon(Icons.add),
+                            label: const Text('إضافة الصنف'),
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                                vertical: 12,
+                              ),
+                            ),
+                          ),
+                        ),
               ],
             ),
           );

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:talabat/views/widgets/animated_logo.dart';
+
 import '../viewmodels/login_viewmodel.dart';
 
 class LoginScreen extends StatelessWidget {
@@ -7,15 +9,13 @@ class LoginScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // نحصل على عرض الشاشة لاستخدامه في ضبط حجم الشعار
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return ChangeNotifierProvider(
       create: (_) => LoginViewModel(), // ربط ViewModel بالواجهة
       child: Scaffold(
-        appBar: AppBar(
-          title: Text('تسجيل الدخول'),
-
-          // centerTitle: true,
-        ),
-
+        appBar: AppBar(title: const Text('تسجيل الدخول')),
         body: Padding(
           padding: const EdgeInsets.all(20),
           child: Consumer<LoginViewModel>(
@@ -24,14 +24,24 @@ class LoginScreen extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const SizedBox(height: 50),
+                    // فراغ علوي بسيط
+                    const SizedBox(height: 40),
+                    Image.asset(
+                      width: screenWidth * 0.15,
+                      height: screenWidth * 0.15,
+                      'assets/images/TALABAT LOGO.png',
+                      // color: Color.fromARGB(255, 32, 101, 135),
+
+                      // نسمح للصورة بأن تحافظ على نسبة الطول للعرض تلقائيًا
+                      fit: BoxFit.contain,
+                    ),
+                    const SizedBox(height: 40),
 
                     // حقل إدخال البريد الإلكتروني
                     TextField(
                       controller: viewModel.usernameController,
                       decoration: const InputDecoration(
                         labelText: 'البريد الإلكتروني',
-
                         border: OutlineInputBorder(),
                       ),
                       keyboardType: TextInputType.emailAddress,
@@ -48,15 +58,17 @@ class LoginScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 20),
-
-                    // زر تسجيل الدخول
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () => viewModel.login(context),
-                        child: const Text('تسجيل الدخول'),
-                      ),
-                    ),
+                    viewModel.isLoading
+                        ? const AnimatedLogo()
+                        :
+                          // زر تسجيل الدخول
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: () => viewModel.login(context),
+                              child: const Text('تسجيل الدخول'),
+                            ),
+                          ),
 
                     // رسالة الخطأ إن وجدت
                     if (viewModel.errorMessage != null)

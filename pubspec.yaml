@@ -48,6 +48,7 @@ dependencies:
   responsive_framework: ^1.5.1
   flutter_localizations:
     sdk: flutter
+  # flutter_svg: ^2.0.9
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -76,6 +77,7 @@ flutter:
     - assets/fonts/Almarai-ExtraBold.ttf
     - assets/fonts/Almarai-Light.ttf
     - assets/fonts/Almarai-Regular.ttf
+    - assets/images/TALABAT LOGO.png
   fonts:
     - family: Almarai
       fonts:

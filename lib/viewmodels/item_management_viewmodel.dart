@@ -22,6 +22,8 @@ class ItemManagementViewModel extends ChangeNotifier {
   // final solidOvenTimeController = TextEditingController();
   bool solidIsMixed = false;
   int solidMixCount = 1;
+  bool _isLoading = false; // متغيّر لتتبّع حالة التحميل
+  bool get isLoading => _isLoading;
   List<TextEditingController> solidSupplierCodeControllers = [
     TextEditingController(),
   ];
@@ -92,6 +94,16 @@ class ItemManagementViewModel extends ChangeNotifier {
   Future<String> addItem() async {
     final firestore = FirebaseFirestore.instance;
     final uid = userId;
+    // مساعدة: دالة للتحقق من وجود مستند بنفس القيمة في المجموعة المحددة
+    Future<bool> exists(String collection, String field, String value) async {
+      final query = await firestore
+          .collection(collection)
+          .where(field, isEqualTo: value)
+          .where('userId', isEqualTo: uid)
+          .limit(1)
+          .get();
+      return query.docs.isNotEmpty;
+    }
 
     if (selectedItemType == ItemType.aluminum) {
       final name = aluminumNameController.text.trim();
@@ -99,6 +111,18 @@ class ItemManagementViewModel extends ChangeNotifier {
       if (name.isEmpty) {
         return 'يرجى إدخال  اسم قطاع الألمنيوم';
       }
+      // تحقق أولاً إن كان هذا الاسم موجوداً بالفعل
+      final alreadyAluminum = await exists(
+        'aluminum_items',
+        'sectorName',
+        name,
+      );
+      if (alreadyAluminum) {
+        return 'قطاع الألمنيوم هذا موجود مسبقاً';
+      }
+
+      _isLoading = true;
+      notifyListeners();
       try {
         await firestore.collection('aluminum_items').add({
           'sectorName': name,
@@ -108,6 +132,9 @@ class ItemManagementViewModel extends ChangeNotifier {
         return ''; // يعني: نجح
       } catch (e) {
         return 'فشل في إضافة عنصر الألمنيوم';
+      } finally {
+        _isLoading = false;
+        notifyListeners();
       }
     }
 
@@ -116,7 +143,10 @@ class ItemManagementViewModel extends ChangeNotifier {
       if (code.isEmpty) {
         return 'يرجى إدخال رمز اللون المحلي';
       }
-
+      final alreadySolid = await exists('solid_colors', 'localCode', code);
+      if (alreadySolid) {
+        return 'رمز اللون السادة هذا موجود مسبقاً';
+      }
       // لكل مورد، يجب أن يكون paintCode و supplierName غير فارغين
       for (int i = 0; i < solidMixCount; i++) {
         final paintCode = solidSupplierCodeControllers[i].text.trim();
@@ -139,6 +169,8 @@ class ItemManagementViewModel extends ChangeNotifier {
         });
       }
 
+      _isLoading = true;
+      notifyListeners();
       try {
         await firestore.collection('solid_colors').add({
           'localCode': code,
@@ -149,6 +181,9 @@ class ItemManagementViewModel extends ChangeNotifier {
         return ''; // نجاح
       } catch (e) {
         return 'فشل في إضافة اللون السادة';
+      } finally {
+        _isLoading = false;
+        notifyListeners();
       }
     }
 
@@ -170,6 +205,11 @@ class ItemManagementViewModel extends ChangeNotifier {
       if (code.isEmpty) {
         return 'يرجى إدخال رمز اللون المحلي';
       }
+      // تحقق وجود رمز اللون مسبقاً
+      final alreadyWood = await exists('wood_colors', 'localCode', code);
+      if (alreadyWood) {
+        return 'رمز اللون الخشابي هذا موجود مسبقاً';
+      }
 
       for (int i = 0; i < woodMixCount; i++) {
         final paintCode = woodSupplierCodeControllers[i].text.trim();
@@ -189,6 +229,8 @@ class ItemManagementViewModel extends ChangeNotifier {
           'paintCode': woodSupplierCodeControllers[i].text.trim(),
         });
       }
+      _isLoading = true;
+      notifyListeners();
 
       try {
         await firestore.collection('wood_colors').add({
@@ -203,6 +245,9 @@ class ItemManagementViewModel extends ChangeNotifier {
         return ''; // نجاح
       } catch (e) {
         return 'فشل في إضافة اللون الخشابي';
+      } finally {
+        _isLoading = false;
+        notifyListeners();
       }
     }
 
@@ -276,6 +321,7 @@ class ItemManagementViewModel extends ChangeNotifier {
     final firestore = FirebaseFirestore.instance;
     String collectionName;
     String fieldName;
+    final uid = userId;
 
     switch (selectedItemType) {
       case ItemType.aluminum:
@@ -297,6 +343,7 @@ class ItemManagementViewModel extends ChangeNotifier {
     try {
       final querySnapshot = await firestore
           .collection(collectionName)
+          .where('userId', isEqualTo: uid)
           .orderBy(fieldName)
           .get();
 
@@ -323,6 +370,7 @@ class ItemManagementViewModel extends ChangeNotifier {
     final firestore = FirebaseFirestore.instance;
     String collectionName;
     String fieldName;
+    final uid = userId;
 
     switch (selectedItemType) {
       case ItemType.aluminum:
@@ -340,12 +388,14 @@ class ItemManagementViewModel extends ChangeNotifier {
       default:
         return false;
     }
-
+    _isLoading = true;
+    notifyListeners();
     try {
       // نبحث عن الوثيقة التي تحتوي على الحقل بقيمة nameToDelete
       final querySnapshot = await firestore
           .collection(collectionName)
           .where(fieldName, isEqualTo: nameToDelete)
+          .where('userId', isEqualTo: uid) // ← إضافة هذا الشرط
           .limit(1)
           .get();
 
@@ -363,6 +413,9 @@ class ItemManagementViewModel extends ChangeNotifier {
       return true;
     } catch (e) {
       return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 }

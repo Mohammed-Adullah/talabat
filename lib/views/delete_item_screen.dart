@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:dropdown_search/dropdown_search.dart';
+import 'package:talabat/views/widgets/animated_logo.dart';
 
 import '../viewmodels/item_management_viewmodel.dart';
 
@@ -19,7 +20,7 @@ class _DeleteItemScreenState extends State<DeleteItemScreen> {
     return ChangeNotifierProvider<ItemManagementViewModel>(
       create: (_) => ItemManagementViewModel(),
       child: Consumer<ItemManagementViewModel>(
-        builder: (context, vm, child) {
+        builder: (context, viewModel, child) {
           return Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
@@ -27,7 +28,7 @@ class _DeleteItemScreenState extends State<DeleteItemScreen> {
               children: [
                 // DropdownButton لاختيار نوع الصنف
                 DropdownButton<ItemType>(
-                  value: vm.selectedItemType,
+                  value: viewModel.selectedItemType,
                   hint: const Text('اختر نوع الصنف'),
                   isExpanded: true,
                   items: const [
@@ -45,7 +46,7 @@ class _DeleteItemScreenState extends State<DeleteItemScreen> {
                     ),
                   ],
                   onChanged: (type) {
-                    vm.setItemType(type);
+                    viewModel.setItemType(type);
                     setState(() {
                       _selectedItemNameToDelete = null;
                     });
@@ -55,12 +56,12 @@ class _DeleteItemScreenState extends State<DeleteItemScreen> {
                 const SizedBox(height: 24),
 
                 // إذا اختار المستخدم نوعًا، نعرض DropdownSearch لجلب الأسماء من Firestore
-                if (vm.selectedItemType != null)
+                if (viewModel.selectedItemType != null)
                   FutureBuilder<List<String>>(
-                    future: vm.fetchItemsForCategory(),
+                    future: viewModel.fetchItemsForCategory(),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState != ConnectionState.done) {
-                        return const Center(child: CircularProgressIndicator());
+                        return const Center(child: AnimatedLogo());
                       }
 
                       final items = snapshot.data ?? [];
@@ -105,51 +106,65 @@ class _DeleteItemScreenState extends State<DeleteItemScreen> {
                     },
                   ),
 
-                const Spacer(),
-
                 // زر الحذف
-                ElevatedButton(
-                  onPressed: () async {
-                    if (vm.selectedItemType == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('رجاءً اختر نوع الصنف أولاً'),
+                const SizedBox(height: 24),
+                if (viewModel.selectedItemType != null)
+                  viewModel.isLoading
+                      // إذا في تحميل: عرض الشعار المتحرك في المنتصف
+                      ? Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: const Center(child: AnimatedLogo()),
+                        )
+                      // إذا انتهى التحميل: عرض زر الإضافة
+                      : ElevatedButton.icon(
+                          onPressed: () async {
+                            if (viewModel.selectedItemType == null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('رجاءً اختر نوع الصنف أولاً'),
+                                ),
+                              );
+                              return;
+                            }
+                            if (_selectedItemNameToDelete == null ||
+                                _selectedItemNameToDelete!.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('رجاءً اختر الصنف للحذف'),
+                                ),
+                              );
+                              return;
+                            }
+
+                            final success = await viewModel.deleteItemByName(
+                              _selectedItemNameToDelete!,
+                            );
+                            if (success) {
+                              () async {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('تم حذف الصنف بنجاح'),
+                                  ),
+                                );
+                              };
+
+                              // إعادة تهيئة لاختيار عنصر جديد بعد الحذف
+                              setState(() {
+                                _selectedItemNameToDelete = null;
+                              });
+                            } else {
+                              () async {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('حدث خطأ أثناء الحذف'),
+                                  ),
+                                );
+                              };
+                            }
+                          },
+                          icon: const Icon(Icons.delete),
+                          label: const Text('حذف الصنف'),
                         ),
-                      );
-                      return;
-                    }
-                    if (_selectedItemNameToDelete == null ||
-                        _selectedItemNameToDelete!.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('رجاءً اختر الصنف للحذف')),
-                      );
-                      return;
-                    }
-
-                    final success = await vm.deleteItemByName(
-                      _selectedItemNameToDelete!,
-                    );
-                    if (success) {
-                      () async {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('تم حذف الصنف بنجاح')),
-                        );
-                      };
-
-                      // إعادة تهيئة لاختيار عنصر جديد بعد الحذف
-                      setState(() {
-                        _selectedItemNameToDelete = null;
-                      });
-                    } else {
-                      () async {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('حدث خطأ أثناء الحذف')),
-                        );
-                      };
-                    }
-                  },
-                  child: const Text('حذف الصنف'),
-                ),
               ],
             ),
           );

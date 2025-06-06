@@ -1,6 +1,7 @@
 // lib/viewmodels/statistics_viewmodel.dart
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 /// فئة بسيطة لتخزين زوج (رمز اللون + عدد التكرارات)
@@ -53,7 +54,7 @@ class StatisticsViewModel extends ChangeNotifier {
   ///  3. تجميع التكرارات لكل رمز لون في خريطتين (سادة وخشابي)
   ///  4. فرز القوائم واختيار أعلى 10
   Future<void> loadStatistics() async {
-    // خطوات تهيئة الحالة:
+    // 1) تهيئة الحالة
     _isLoading = true;
     _error = null;
     _topSadah = [];
@@ -61,7 +62,7 @@ class StatisticsViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // 1) نحسب "cutoff" بناءً على _currentPeriod
+      // 2) احسب cutoff بناءً على الفترة المختارة
       DateTime now = DateTime.now();
       DateTime cutoff;
       switch (_currentPeriod) {
@@ -110,31 +111,38 @@ class StatisticsViewModel extends ChangeNotifier {
           break;
       }
 
-      // 2) نحول الـ DateTime إلى Timestamp Firestore
+      // 3) حول التاريخ إلى Timestamp
       final cutoffTimestamp = Timestamp.fromDate(cutoff);
 
-      // 3) ننفّذ الاستعلام على مجموعة "orders"
+      // 4) احصل على userId الحالي
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid == null) {
+        // إذا لم يكن المستخدم مسجَّل، أوقف العملية مبكرًا
+        _isLoading = false;
+        _error = "المستخدم غير مسجَّل الدخول.";
+        notifyListeners();
+        return;
+      }
+
+      // 5) انفذ الاستعلام مع فلترة userId أولًا ثم تاريخ الطلب
       final querySnapshot = await _firestore
           .collection('orders')
+          .where('userId', isEqualTo: uid)
           .where('orderTimestamp', isGreaterThanOrEqualTo: cutoffTimestamp)
           .get();
 
-      // 4) نعد خريطتين فارغتين لحساب التكرارات
+      // 6) جهّز خرائط العدّ لكل نوع (سادة وخشابي)
       final Map<String, int> countsSadahMap = {};
       final Map<String, int> countsKhashabiMap = {};
 
-      // 5) نمرّ على كل مستند (document) نأتيه من Firestore
       for (var doc in querySnapshot.docs) {
         final data = doc.data();
-        final code = (data['localColorCode'] as String?)?.trim(); // رمز اللون
-        final type = (data['colorType'] as String?)
-            ?.trim(); // "سادة" أو "خشابي"
+        final code = (data['localColorCode'] as String?)?.trim();
+        final type = (data['colorType'] as String?)?.trim();
 
         if (code == null || code.isEmpty || type == null || type.isEmpty) {
-          // إذا أحد الحقلين فارغ أو null، نتجنّب إضافة
           continue;
         }
-        // 6) نزيد العداد في الخريطة المناسبة
         if (type == 'سادة') {
           countsSadahMap[code] = (countsSadahMap[code] ?? 0) + 1;
         } else if (type == 'خشابي') {
@@ -142,7 +150,7 @@ class StatisticsViewModel extends ChangeNotifier {
         }
       }
 
-      // 7) نحول كل خريطة إلى قائمة ColorCount ونرتّبها تنازلياً ونأخذ أول 10
+      // 7) حوّل الخرائط إلى قوائم ColorCount وفرزها تنازليًا ثم أخذ أول 10
       _topSadah =
           countsSadahMap.entries
               .map((e) => ColorCount(code: e.key, count: e.value))
@@ -161,11 +169,10 @@ class StatisticsViewModel extends ChangeNotifier {
         _topKhashabi = _topKhashabi.sublist(0, 10);
       }
     } catch (e) {
-      // إذا حدث أي خطأ أثناء جلب البيانات من Firestore
-      _error = "حدث خطأ أثناء جلب البيانات: $e";
+      _error = "لايوجد بيانات ليتم احصائها: ";
     }
 
-    // 8) نضع isLoading = false وننبّه المستمعين (listeners) حتى تنعكس القيم الجديدة في الواجهة
+    // 8) أنهِ التحميل وأبلّغ المستمعين
     _isLoading = false;
     notifyListeners();
   }

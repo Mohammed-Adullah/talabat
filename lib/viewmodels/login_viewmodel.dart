@@ -9,7 +9,8 @@ class LoginViewModel extends ChangeNotifier {
   final TextEditingController passwordController = TextEditingController();
 
   String? errorMessage;
-
+  bool _isLoading = false; // متغيّر لتتبّع حالة التحميل
+  bool get isLoading => _isLoading;
   // دالة التحقق من إدخال الحقول
   bool validateInputs(BuildContext context) {
     if (usernameController.text.isEmpty || passwordController.text.isEmpty) {
@@ -24,6 +25,8 @@ class LoginViewModel extends ChangeNotifier {
   // دالة تسجيل الدخول عبر Firebase
   Future<void> login(BuildContext context) async {
     if (!validateInputs(context)) return;
+    _isLoading = true;
+    notifyListeners();
 
     try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(
@@ -40,6 +43,10 @@ class LoginViewModel extends ChangeNotifier {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(errorMessage!)));
+    } finally {
+      // في النهاية، أعِد isLoading إلى false
+      _isLoading = false;
+      notifyListeners();
     }
   }
 }

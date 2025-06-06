@@ -5,7 +5,7 @@ class AppTheme {
     // 🎨 مخطط ألوان الوضع الفاتح كما زودتني
     const colorScheme = ColorScheme(
       brightness: Brightness.light,
-      primary: Color(0xff206487),
+      primary: Color.fromARGB(255, 32, 101, 135),
       surfaceTint: Color(0xff206487),
       onPrimary: Color(0xffffffff),
       primaryContainer: Color(0xffc6e7ff),

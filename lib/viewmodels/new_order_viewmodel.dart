@@ -41,28 +41,38 @@ class NewOrderViewModel extends ChangeNotifier {
   List<Map<String, String>> suppliers = [];
   int? ovenTemp;
   int? ovenTime;
+  bool _isDisposed = false;
 
   NewOrderViewModel() {
     _initializeData();
   }
 
   Future<void> _initializeData() async {
+    // قبل كل شيء، تأكد أنّه لم يدمَّر ViewModel
+    if (_isDisposed) return;
+
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) {
       // إذا لم يكن المستخدم مسجّل دخول، نحاول إعادة المحاولة بعد لحظة بسيطة
       Future.delayed(Duration(milliseconds: 200), () {
-        _initializeData();
+        if (!_isDisposed) {
+          _initializeData();
+        }
       });
       return;
     }
 
     await initializeOrderNumber();
+    if (_isDisposed) return; // بعد كل await
     await loadItemNames();
+    if (_isDisposed) return;
     await loadColorCodes();
   }
 
   /// يولّد رقم الطلب ثلاثي الخانات (001→999 ثم يعود 001)
   Future<void> initializeOrderNumber() async {
+    if (_isDisposed) return;
+
     final uid = FirebaseAuth.instance.currentUser!.uid;
 
     // نأخذ كل طلبات هذا المستخدم ونستخلص أكبر رقم منها
@@ -70,6 +80,8 @@ class NewOrderViewModel extends ChangeNotifier {
         .collection('orders')
         .where('userId', isEqualTo: uid)
         .get();
+
+    if (_isDisposed) return;
 
     int maxNumeric = 0;
     for (var doc in snapshot.docs) {
@@ -86,10 +98,13 @@ class NewOrderViewModel extends ChangeNotifier {
     final nextNumeric = (maxNumeric >= 999) ? 1 : (maxNumeric + 1);
     final formatted = nextNumeric.toString().padLeft(3, '0'); // "001" .. "999"
     orderNumberController.text = 'ORD-$formatted';
+    // لا داعي لـ notify هنا لأن الكائن قد يكون جديداً ولم يُستمع إليه بعد
   }
 
   /// يحمل أسماء أصناف الألمنيوم الخاصة بالمستخدم
   Future<void> loadItemNames() async {
+    if (_isDisposed) return;
+
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return;
 
@@ -98,16 +113,20 @@ class NewOrderViewModel extends ChangeNotifier {
         .where('userId', isEqualTo: uid)
         .get();
 
+    if (_isDisposed) return; // مهم جداً بعد انتهاء الـ Future
+
     validItemNames = snapshot.docs
         .map((doc) => (doc.data()['sectorName'] as String?) ?? '')
         .where((name) => name.isNotEmpty)
         .toList();
 
-    notifyListeners();
+    _safeNotify();
   }
 
   /// يحمل رموز الألوان المحلية (سادة + خشابي) الخاصة بالمستخدم
   Future<void> loadColorCodes() async {
+    if (_isDisposed) return;
+
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return;
 
@@ -115,10 +134,15 @@ class NewOrderViewModel extends ChangeNotifier {
         .collection('solid_colors')
         .where('userId', isEqualTo: uid)
         .get();
+
+    if (_isDisposed) return;
+
     final woodSnapshot = await _firestore
         .collection('wood_colors')
         .where('userId', isEqualTo: uid)
         .get();
+
+    if (_isDisposed) return;
 
     final solidCodes = solidSnapshot.docs
         .map((doc) => (doc.data()['localCode'] as String?) ?? '')
@@ -128,14 +152,17 @@ class NewOrderViewModel extends ChangeNotifier {
         .where((c) => c.isNotEmpty);
 
     validColorCodes = [...solidCodes, ...woodCodes];
-    notifyListeners();
+    _safeNotify();
   }
 
   /// يرجع قائمة أسماء الأصناف بعد فلترة (للـ DropdownSearch)
   Future<List<String>> fetchItemSuggestions(String filter) async {
+    if (_isDisposed) return []; // أو تعيد القائمة الفارغة
+
     if (validItemNames.isEmpty) {
       // إذا القائمة لا تزال فارغة، نحمّلها أولاً
       await loadItemNames();
+      if (_isDisposed) return [];
     }
     if (filter.trim().isEmpty) return validItemNames;
     return validItemNames
@@ -147,9 +174,12 @@ class NewOrderViewModel extends ChangeNotifier {
 
   /// يرجع قائمة رموز الألوان بعد فلترة (للـ DropdownSearch)
   Future<List<String>> fetchColorSuggestions(String filter) async {
+    if (_isDisposed) return [];
+
     if (validColorCodes.isEmpty) {
       // إذا القائمة لا تزال فارغة، نحمّلها أولاً
       await loadColorCodes();
+      if (_isDisposed) return [];
     }
     if (filter.trim().isEmpty) return validColorCodes;
     return validColorCodes
@@ -161,12 +191,15 @@ class NewOrderViewModel extends ChangeNotifier {
 
   /// تبديل مصدر الصنف (المستودع ↔ الزبون)
   void toggleSource(bool value) {
+    if (_isDisposed) return;
     fromWarehouse = value;
-    notifyListeners();
+    _safeNotify();
   }
 
   /// إضافة صنف جديد إلى قائمة الأصناف المضافة
   void addItem(BuildContext context) {
+    if (_isDisposed) return;
+
     final int quantity = int.tryParse(quantityController.text) ?? 0;
     if (quantity == 0) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -181,23 +214,25 @@ class NewOrderViewModel extends ChangeNotifier {
       OrderItem(
         name: itemController.text,
         quantity: quantity,
-
         source: fromWarehouse ? 'المستودع' : 'الزبون',
       ),
     );
     itemController.clear();
     quantityController.clear();
-    notifyListeners();
+    _safeNotify();
   }
 
   /// إزالة صنف من قائمة الأصناف
   void removeItem(int index) {
+    if (_isDisposed) return;
     addedItems.removeAt(index);
-    notifyListeners();
+    _safeNotify();
   }
 
   /// إنشاء وطباعة ملف PDF ثم حفظ الطلب في Firestore
   Future<void> generateAndPrintOrder(BuildContext context) async {
+    if (_isDisposed) return;
+
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       ScaffoldMessenger.of(
@@ -216,17 +251,25 @@ class NewOrderViewModel extends ChangeNotifier {
       return;
     }
 
+    if (_isDisposed) return;
+
     // بناء مستند PDF
     final pdf = pw.Document();
     final font = pw.Font.ttf(
       await rootBundle.load('assets/fonts/Almarai-Regular.ttf'),
     );
 
+    if (_isDisposed) return;
+
     pdf.addPage(
       pw.Page(
         textDirection: pw.TextDirection.rtl,
         pageFormat: PdfPageFormat.a4,
         build: (pw.Context context) {
+          // قبل بناء الـWidget الخاص بالـPDF تأكد أنّه لم يُدمّر
+          if (_isDisposed) {
+            return pw.Center(child: pw.Text('تم إلغاء العملية'));
+          }
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
@@ -290,7 +333,6 @@ class NewOrderViewModel extends ChangeNotifier {
               ),
               pw.TableHelper.fromTextArray(
                 headers: ['المصدر', 'العدد', 'الصنف'],
-
                 data: List.generate(addedItems.length, (index) {
                   final item = addedItems[index];
                   return [item.source, item.quantity.toString(), item.name];
@@ -308,9 +350,16 @@ class NewOrderViewModel extends ChangeNotifier {
       ),
     );
 
+    if (_isDisposed) return;
     // عرض واجهة الطباعة
-    await Printing.layoutPdf(onLayout: (format) async => pdf.save());
+    await Printing.layoutPdf(
+      onLayout: (format) async {
+        if (_isDisposed) return Uint8List(0);
+        return pdf.save();
+      },
+    );
 
+    if (_isDisposed) return;
     // حفظ الطلب في Firestore
     final orderData = {
       'orderNumber': orderNumberController.text,
@@ -337,6 +386,7 @@ class NewOrderViewModel extends ChangeNotifier {
     };
     await _firestore.collection('orders').add(orderData);
 
+    if (_isDisposed) return;
     // تفريغ الحقول بعد الحفظ
     customerNameController.clear();
     localColorCodeController.clear();
@@ -350,21 +400,27 @@ class NewOrderViewModel extends ChangeNotifier {
     ovenTime = null;
     suppliers.clear();
     await initializeOrderNumber(); // إعادة توليد رقم الطلب
-    notifyListeners();
+    if (_isDisposed) return;
+    _safeNotify();
   }
 
   /// يبحث عن بيانات اللون في Firestore بناءً على الرمز
   Future<void> lookupColorData(String code) async {
+    if (_isDisposed) return;
+
     DocumentSnapshot? doc;
 
     final solidQuery = await _firestore
         .collection('solid_colors')
         .where('localCode', isEqualTo: code)
         .get();
+    if (_isDisposed) return;
+
     final woodQuery = await _firestore
         .collection('wood_colors')
         .where('localCode', isEqualTo: code)
         .get();
+    if (_isDisposed) return;
 
     suppliers.clear();
     ovenTemp = null;
@@ -396,7 +452,7 @@ class NewOrderViewModel extends ChangeNotifier {
       }
     }
 
-    notifyListeners();
+    _safeNotify();
   }
 
   void _showError(BuildContext context, String msg) {
@@ -405,6 +461,7 @@ class NewOrderViewModel extends ChangeNotifier {
 
   @override
   void dispose() {
+    // أفضَل دائمًا أنْ تتخلّص من جميع TextEditingController هنا أيضًا:
     orderNumberController.dispose();
     customerNameController.dispose();
     dateController.dispose();
@@ -412,6 +469,16 @@ class NewOrderViewModel extends ChangeNotifier {
     itemController.dispose();
     quantityController.dispose();
     notesController.dispose();
+    // أيّ Controllers أو StreamSubscriptions أخرى
+
+    _isDisposed = true;
     super.dispose();
+  }
+
+  /// هذه الطريقة تستخدم بدل notifyListeners()
+  void _safeNotify() {
+    if (!_isDisposed) {
+      notifyListeners();
+    }
   }
 }

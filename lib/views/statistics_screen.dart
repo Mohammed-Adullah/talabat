@@ -3,6 +3,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:talabat/views/widgets/animated_logo.dart';
 import '../viewmodels/statistics_viewmodel.dart';
 
 class StatisticsScreen extends StatefulWidget {
@@ -35,7 +36,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         builder: (context, vm, _) {
           // 1) إذا كانت العملية "جارٍ التحميل"، نعرض سبينر
           if (vm.isLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(child: AnimatedLogo());
           }
           // 2) إذا كان هناك خطأ، نظهر رسالة الخطأ
           if (vm.errorMessage != null) {
