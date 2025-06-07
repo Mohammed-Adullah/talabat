@@ -29,12 +29,6 @@ class NewOrderScreen extends StatelessWidget {
 
                   SizedBox(height: 12),
 
-                  // 2. اسم الزبون
-                  TextFormField(
-                    controller: viewModel.customerNameController,
-                    decoration: InputDecoration(labelText: 'اسم الزبون'),
-                  ),
-
                   SizedBox(height: 12),
 
                   // 3. التاريخ (قراءة فقط + اختيار من التقويم)
@@ -139,7 +133,11 @@ class NewOrderScreen extends StatelessWidget {
                       ),
                     SizedBox(height: 20),
                   ],
-
+                  // 2. اسم الزبون
+                  TextFormField(
+                    controller: viewModel.customerNameController,
+                    decoration: InputDecoration(labelText: 'اسم الزبون'),
+                  ),
                   // 6. قسم “إضافة أصناف الألمنيوم”
                   Text(
                     'إضافة أصناف الألمنيوم',
